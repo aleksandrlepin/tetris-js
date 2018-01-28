@@ -1,0 +1,22 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 302px;
+  height: 602px;
+  border: solid 1px rgb(56, 14, 240);
+}
+
+.square {
+  width: 30px;
+  height: 30px;
+  border: solid 1px rgb(219, 219, 219);
+  margin-bottom: 0;
+}
+
+.active {
+  background: #333;
+}
