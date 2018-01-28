@@ -1,10 +1,13 @@
 'use strict';
 
-var staticInitialState = function staticInitialState(width, height) {
+var staticInitialState = function staticInitialState() {
+  var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+  var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
+
   var arr = [];
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < width; i++) {
     var row = [];
-    for (var j = 0; j < 20; j++) {
+    for (var j = 0; j < height; j++) {
       row.push(false);
     }
     arr.push(row);
@@ -62,54 +65,108 @@ var shapes = {
   }
 };
 
-var mainState = staticInitialState();
-var render = function render(container) {
-  var elements = '';
+var createShape = function createShape() {
+  var shapesKeys = Object.keys(shapes);
+  var random = getRandomInt(0, shapesKeys.length);
+  var currentShape = shapes[shapesKeys[random]]();
+  return currentShape;
+  // renderField(document.body);
+};
 
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 20; j++) {
-      var element = mainState[i][j];
-      if (element) {
-        elements += '<div class="square active"></div>';
+var currentShapeState = createShape();
+console.log('currentShapeState: ', currentShapeState);
+
+var field = staticInitialState(20, 10);
+console.log('field: ', field);
+
+var renderField = function renderField() {
+  console.log('redner');
+  var shape = '';
+
+  for (var i = 0; i < field.length; i++) {
+    for (var j = 0; j < field[i].length; j++) {
+
+      // let cell = currentShapeState[i][j] || false;
+      if (field[i][j]) {
+        shape += '<div class="square active"></div>';
       } else {
-        elements += '<div class="square"></div>';
+        shape += '<div class="square"></div>';
       }
     }
   }
 
-  var template = '\n        <div class="container">\n            ' + elements + '\n        <div>\n    ';
+  var template = '\n        <div class="container">\n            ' + shape + '\n        <div>\n    ';
   if (1) {
     // Проверить является ли контейнер ДОМ елементом.
-    container.innerHTML = template;
+    document.body.innerHTML = template;
   }
 };
 
-var renderRandomShape = function renderRandomShape() {
-  var shapesKeys = Object.keys(shapes);
-  var random = getRandomInt(0, shapesKeys.length);
-  mainState = shapes[shapesKeys[random]]();
-  // render(document.body);
-};
+// let rotateShape = (state) => {
+//   let rotatedState = staticInitialState();
+//   state.reverse();
+//   for (let i = 0; i < state.length; i++) {
+//     for (let j = 0; j < state[i].length; j++) {
+//       rotatedState[j][i] = state[i][j];
+//     }
+//   }
+//   currentShapeState = rotatedState;
+//   renderField(document.body);
+// };
 
-var rotateShape = function rotateShape(state) {
-  var rotatedState = staticInitialState();
-  state.reverse();
-  for (var i = 0; i < state.length; i++) {
-    for (var j = 0; j < state[i].length; j++) {
-      rotatedState[j][i] = state[i][j];
+// currentShape();
+var pushCurrentShapeState = function pushCurrentShapeState(x, y) {
+  for (var i = 0; i < currentShapeState.length; i++) {
+    for (var j = 0; j < currentShapeState[i].length; j++) {
+      if (currentShapeState[i][j]) {
+        field[i + x][j + y] = true;
+      }
     }
   }
-  mainState = rotatedState;
-  render(document.body);
 };
 
-render(document.body);
-renderRandomShape();
-// setInterval(renderRandomShape, 3000);
-
-var rotateHandler = function rotateHandler(e) {
-  if (e.code === 'ArrowUp') {
-    rotateShape(mainState);
+var shiftCurrentShapeState = function shiftCurrentShapeState(x, y) {
+  for (var i = 0; i < currentShapeState.length; i++) {
+    for (var j = 0; j < currentShapeState[i].length; j++) {
+      if (currentShapeState[i][j]) {
+        field[i + x][j + y] = false;
+      }
+    }
   }
 };
-window.addEventListener('keydown', rotateHandler);
+
+var coordX = 0;
+var coordY = 0;
+
+var renderFieldTick = function renderFieldTick() {
+  coordY += 1;
+  pushCurrentShapeState(coordY, coordX);
+  renderField();
+  shiftCurrentShapeState(coordY, coordX);
+};
+
+var moveHandler = function moveHandler(e) {
+  if (e.code === 'ArrowRight') {
+    coordX += 1;
+  }
+  if (e.code === 'ArrowLeft' && coordX > 0) {
+    coordX -= 1;
+  }
+  pushCurrentShapeState(coordY, coordX);
+  renderField();
+  shiftCurrentShapeState(coordY, coordX);
+};
+window.addEventListener('keydown', moveHandler);
+// pushCurrentShapeState(0, 0);
+// renderField();
+renderFieldTick();
+var renderFieldId = setInterval(renderFieldTick, 1000);
+
+// setInterval(currentShape, 3000);
+
+// let rotateHandler = (e) => {
+//   if (e.code === 'ArrowUp') {
+//     rotateShape(currentShapeState);
+//   }
+// };
+// window.addEventListener('keydown', rotateHandler)
