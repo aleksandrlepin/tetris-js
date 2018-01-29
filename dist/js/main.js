@@ -24,7 +24,7 @@ function getRandomInt(min, max) {
 
 var shapes = {
   t: function t() {
-    var arr = staticInitialState();
+    var arr = staticInitialState(2, 3);
     arr[0][1] = true;
     arr[1][0] = true;
     arr[1][1] = true;
@@ -32,7 +32,7 @@ var shapes = {
     return arr;
   },
   square: function square() {
-    var arr = staticInitialState();
+    var arr = staticInitialState(2, 2);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][0] = true;
@@ -40,7 +40,7 @@ var shapes = {
     return arr;
   },
   l: function l() {
-    var arr = staticInitialState();
+    var arr = staticInitialState(3, 2);
     arr[0][0] = true;
     arr[1][0] = true;
     arr[2][0] = true;
@@ -48,7 +48,7 @@ var shapes = {
     return arr;
   },
   line: function line() {
-    var arr = staticInitialState();
+    var arr = staticInitialState(1, 4);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[0][2] = true;
@@ -56,7 +56,7 @@ var shapes = {
     return arr;
   },
   z: function z() {
-    var arr = staticInitialState();
+    var arr = staticInitialState(2, 3);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][1] = true;
@@ -80,7 +80,7 @@ var field = staticInitialState(20, 10);
 console.log('field: ', field);
 
 var renderField = function renderField() {
-  console.log('redner');
+  // console.log('redner');
   var shape = '';
 
   for (var i = 0; i < field.length; i++) {
@@ -102,71 +102,97 @@ var renderField = function renderField() {
   }
 };
 
-// let rotateShape = (state) => {
-//   let rotatedState = staticInitialState();
-//   state.reverse();
-//   for (let i = 0; i < state.length; i++) {
-//     for (let j = 0; j < state[i].length; j++) {
-//       rotatedState[j][i] = state[i][j];
-//     }
-//   }
-//   currentShapeState = rotatedState;
-//   renderField(document.body);
-// };
+var rotateShape = function rotateShape() {
+  var rotatedState = staticInitialState(currentShapeState[0].length, currentShapeState.length);
+  currentShapeState.reverse();
+  for (var i = 0; i < currentShapeState.length; i++) {
+    for (var j = 0; j < currentShapeState[i].length; j++) {
+      rotatedState[j][i] = currentShapeState[i][j];
+    }
+  }
+  currentShapeState = rotatedState;
+  // renderField(document.body);
+};
 
 // currentShape();
-var pushCurrentShapeState = function pushCurrentShapeState(x, y) {
+var checkNextShapeState = function checkNextShapeState(y, x) {
+  var nextStateAvailable = true;
   for (var i = 0; i < currentShapeState.length; i++) {
     for (var j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        field[i + x][j + y] = true;
+        // console.log('i > ', i, 'i + y > ', i + y);
+        if (field[i + y + 1][j + x]) {
+          nextStateAvailable = false;
+          break;
+        }
+      }
+    }
+  }
+  return nextStateAvailable;
+};
+
+var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
+  for (var i = 0; i < currentShapeState.length; i++) {
+    for (var j = 0; j < currentShapeState[i].length; j++) {
+      if (currentShapeState[i][j]) {
+        field[i + y][j + x] = true;
       }
     }
   }
 };
 
-var shiftCurrentShapeState = function shiftCurrentShapeState(x, y) {
+var shiftCurrentShapeState = function shiftCurrentShapeState(y, x) {
   for (var i = 0; i < currentShapeState.length; i++) {
     for (var j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        field[i + x][j + y] = false;
+        field[i + y][j + x] = false;
       }
     }
   }
 };
 
-var coordX = 0;
+var coordX = 4;
 var coordY = 0;
 
 var renderFieldTick = function renderFieldTick() {
-  coordY += 1;
-  pushCurrentShapeState(coordY, coordX);
-  renderField();
-  shiftCurrentShapeState(coordY, coordX);
+  if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY, coordX)) {
+    pushCurrentShapeState(coordY, coordX);
+    currentShapeState = createShape();
+    coordX = 5;
+    coordY = 0;
+  } else {
+    pushCurrentShapeState(coordY, coordX);
+    renderField();
+    shiftCurrentShapeState(coordY, coordX);
+    coordY += 1;
+  }
 };
 
+// pushCurrentShapeState(0, 0);
+// renderField();
+renderFieldTick();
+// const renderFieldId = setInterval(renderField, 1000);
+var renderFieldId = setInterval(renderFieldTick, 200);
+
 var moveHandler = function moveHandler(e) {
-  if (e.code === 'ArrowRight') {
+  if (e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length) {
     coordX += 1;
   }
   if (e.code === 'ArrowLeft' && coordX > 0) {
     coordX -= 1;
   }
+  if (e.code === 'ArrowUp') {
+    rotateShape(currentShapeState);
+  }
+  if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length) {
+    coordY += 1;
+  }
   pushCurrentShapeState(coordY, coordX);
   renderField();
   shiftCurrentShapeState(coordY, coordX);
 };
+
+var rotateHandler = function rotateHandler(e) {};
+
 window.addEventListener('keydown', moveHandler);
-// pushCurrentShapeState(0, 0);
-// renderField();
-renderFieldTick();
-var renderFieldId = setInterval(renderFieldTick, 1000);
-
-// setInterval(currentShape, 3000);
-
-// let rotateHandler = (e) => {
-//   if (e.code === 'ArrowUp') {
-//     rotateShape(currentShapeState);
-//   }
-// };
 // window.addEventListener('keydown', rotateHandler)

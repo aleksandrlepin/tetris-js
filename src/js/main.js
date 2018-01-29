@@ -19,7 +19,7 @@ function getRandomInt(min, max) {
 
 let shapes = {
   t: () => {
-    let arr = staticInitialState();
+    let arr = staticInitialState(2, 3);
     arr[0][1] = true;
     arr[1][0] = true;
     arr[1][1] = true;
@@ -27,7 +27,7 @@ let shapes = {
     return arr;
   },
   square: () => {
-    let arr = staticInitialState();
+    let arr = staticInitialState(2, 2);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][0] = true;
@@ -35,7 +35,7 @@ let shapes = {
     return arr;
   },
   l: () => {
-    let arr = staticInitialState();
+    let arr = staticInitialState(3, 2);
     arr[0][0] = true;
     arr[1][0] = true;
     arr[2][0] = true;
@@ -43,7 +43,7 @@ let shapes = {
     return arr;
   },
   line: () => {
-    let arr = staticInitialState();
+    let arr = staticInitialState(1, 4);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[0][2] = true;
@@ -51,7 +51,7 @@ let shapes = {
     return arr;
   },
   z: () => {
-    let arr = staticInitialState();
+    let arr = staticInitialState(2, 3);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][1] = true;
@@ -76,7 +76,7 @@ console.log('field: ', field);
 
 
 let renderField = () => {
-  console.log('redner');
+  // console.log('redner');
   let shape = '';
 
   for (let i = 0; i < field.length; i++) {
@@ -102,71 +102,100 @@ let renderField = () => {
 };
 
 
-// let rotateShape = (state) => {
-//   let rotatedState = staticInitialState();
-//   state.reverse();
-//   for (let i = 0; i < state.length; i++) {
-//     for (let j = 0; j < state[i].length; j++) {
-//       rotatedState[j][i] = state[i][j];
-//     }
-//   }
-//   currentShapeState = rotatedState;
-//   renderField(document.body);
-// };
+let rotateShape = () => {
+  let rotatedState = staticInitialState(currentShapeState[0].length, currentShapeState.length);
+  currentShapeState.reverse();
+  for (let i = 0; i < currentShapeState.length; i++) {
+    for (let j = 0; j < currentShapeState[i].length; j++) {
+      rotatedState[j][i] = currentShapeState[i][j];
+    }
+  }
+  currentShapeState = rotatedState;
+  // renderField(document.body);
+};
 
 // currentShape();
-const pushCurrentShapeState = (x, y) => {
+const checkNextShapeState = (y, x) => {
+  let nextStateAvailable = true;
   for (let i = 0; i < currentShapeState.length; i++) {
     for (let j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        field[i + x][j + y] = true;
+        // console.log('i > ', i, 'i + y > ', i + y);
+        if(field[i + y + 1][j + x]) {
+          nextStateAvailable = false;
+          break;
+        }
+      }
+    }
+  }
+  return nextStateAvailable;
+}
+
+const pushCurrentShapeState = (y, x) => {
+  for (let i = 0; i < currentShapeState.length; i++) {
+    for (let j = 0; j < currentShapeState[i].length; j++) {
+      if (currentShapeState[i][j]) {
+        field[i + y][j + x] = true;
       }
     }
   }
 }
 
-const shiftCurrentShapeState = (x, y) => {
+const shiftCurrentShapeState = (y, x) => {
   for (let i = 0; i < currentShapeState.length; i++) {
     for (let j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        field[i + x][j + y] = false;
+        field[i + y][j + x] = false;
       }
     }
   }
 }
 
-let coordX = 0;
+let coordX = 4;
 let coordY = 0;
 
 const renderFieldTick = () => {
-  coordY += 1;
-  pushCurrentShapeState(coordY, coordX);
-  renderField();
-  shiftCurrentShapeState(coordY, coordX);
+  if(coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY, coordX)) {
+    pushCurrentShapeState(coordY, coordX);
+    currentShapeState = createShape();
+    coordX = 5;
+    coordY = 0;
+  } else {
+    pushCurrentShapeState(coordY, coordX);
+    renderField();
+    shiftCurrentShapeState(coordY, coordX);
+    coordY += 1;
+  }
 }
 
+
+// pushCurrentShapeState(0, 0);
+// renderField();
+renderFieldTick();
+// const renderFieldId = setInterval(renderField, 1000);
+const renderFieldId = setInterval(renderFieldTick, 200);
+
+
 const moveHandler = (e) => {
-  if(e.code === 'ArrowRight') {
+  if(e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length) {
     coordX += 1;
   }
   if(e.code === 'ArrowLeft' && coordX > 0) {
     coordX -= 1;
   }
+  if(e.code === 'ArrowUp') {
+    rotateShape(currentShapeState);
+  }
+  if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length) {
+    coordY += 1;
+  }
   pushCurrentShapeState(coordY, coordX);
   renderField();
   shiftCurrentShapeState(coordY, coordX);
 }
+
+let rotateHandler = (e) => {
+};
+
 window.addEventListener('keydown', moveHandler)
-// pushCurrentShapeState(0, 0);
-// renderField();
-renderFieldTick();
-const renderFieldId = setInterval(renderFieldTick, 1000);
-
-// setInterval(currentShape, 3000);
-
-// let rotateHandler = (e) => {
-//   if (e.code === 'ArrowUp') {
-//     rotateShape(currentShapeState);
-//   }
-// };
 // window.addEventListener('keydown', rotateHandler)
