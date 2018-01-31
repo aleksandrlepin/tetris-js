@@ -191,9 +191,6 @@ var checkFilledLine = function checkFilledLine() {
   return filledLines;
 };
 
-// check game over
-// const
-
 // add current shape to field array
 var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
   for (var i = 0; i < currentShapeState.length; i++) {
