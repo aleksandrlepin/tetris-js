@@ -106,10 +106,12 @@ var renderField = function renderField() {
 
   for (var i = 0; i < field.length; i++) {
     for (var j = 0; j < field[i].length; j++) {
-      if (field[i][j]) {
+      if (field[i][j] === true) {
         shape += '<div class="square active"></div>';
-      } else {
+      } else if (field[i][j] === false) {
         shape += '<div class="square"></div>';
+      } else {
+        shape += '<div class="square"><p class="letter">' + field[i][j] + '</p></div>';
       }
     }
   }
@@ -189,6 +191,9 @@ var checkFilledLine = function checkFilledLine() {
   return filledLines;
 };
 
+// check game over
+// const
+
 // add current shape to field array
 var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
   for (var i = 0; i < currentShapeState.length; i++) {
@@ -220,6 +225,19 @@ var renderFieldState = function renderFieldState() {
     currentShapeState = createRandomShape();
     coordX = 4;
     coordY = 0;
+    if (!checkNextShapeState(coordY, coordX)) {
+      clearInterval(renderFieldId);
+      field[8][3] = 'G';
+      field[8][4] = 'A';
+      field[8][5] = 'M';
+      field[8][6] = 'E';
+      field[10][3] = 'O';
+      field[10][4] = 'V';
+      field[10][5] = 'E';
+      field[10][6] = 'R';
+      renderField();
+      window.removeEventListener('keydown', moveHandler);
+    }
   } else {
     pushCurrentShapeState(coordY, coordX);
     renderField();

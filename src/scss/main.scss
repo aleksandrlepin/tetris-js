@@ -5,6 +5,7 @@
 .container {
   display: flex;
   flex-wrap: wrap;
+  margin: 20px auto 0;
   width: 302px;
   height: 602px;
   border: solid 1px rgb(56, 14, 240);
@@ -19,4 +20,11 @@
 
 .active {
   background: #333;
+}
+
+.letter {
+  margin: 0;
+  font-size: 28px;
+  text-align: center;
+  vertical-align: middle;
 }
