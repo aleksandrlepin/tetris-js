@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
 * {
   box-sizing: border-box;
 }
@@ -24,8 +26,8 @@
 
 .letter {
   margin: 0;
-  font-family: 'roboto';
-  font-size: 28px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
   text-align: center;
   vertical-align: middle;
 }
