@@ -1,6 +1,13 @@
 'use strict';
 
-var staticInitialState = function staticInitialState() {
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+// coordinates of the current shape in the field
+var coordX = 4;
+var coordY = 0;
+
+// create matrix with given parameters
+var createState = function createState() {
   var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
   var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
 
@@ -14,17 +21,18 @@ var staticInitialState = function staticInitialState() {
   }
   return arr;
 };
-console.log('staticInitialState(): ', staticInitialState());
 
+// return random number
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
-};
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
+// array of shapes
 var shapes = {
   t: function t() {
-    var arr = staticInitialState(2, 3);
+    var arr = createState(2, 3);
     arr[0][1] = true;
     arr[1][0] = true;
     arr[1][1] = true;
@@ -32,7 +40,7 @@ var shapes = {
     return arr;
   },
   square: function square() {
-    var arr = staticInitialState(2, 2);
+    var arr = createState(2, 2);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][0] = true;
@@ -40,15 +48,23 @@ var shapes = {
     return arr;
   },
   l: function l() {
-    var arr = staticInitialState(3, 2);
+    var arr = createState(2, 3);
     arr[0][0] = true;
     arr[1][0] = true;
-    arr[2][0] = true;
-    arr[2][1] = true;
+    arr[1][1] = true;
+    arr[1][2] = true;
+    return arr;
+  },
+  lInverted: function lInverted() {
+    var arr = createState(2, 3);
+    arr[0][2] = true;
+    arr[1][0] = true;
+    arr[1][1] = true;
+    arr[1][2] = true;
     return arr;
   },
   line: function line() {
-    var arr = staticInitialState(1, 4);
+    var arr = createState(1, 4);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[0][2] = true;
@@ -56,37 +72,40 @@ var shapes = {
     return arr;
   },
   z: function z() {
-    var arr = staticInitialState(2, 3);
+    var arr = createState(2, 3);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][1] = true;
     arr[1][2] = true;
     return arr;
+  },
+  zInverted: function zInverted() {
+    var arr = createState(2, 3);
+    arr[0][1] = true;
+    arr[0][2] = true;
+    arr[1][0] = true;
+    arr[1][1] = true;
+    return arr;
   }
-};
 
-var createShape = function createShape() {
+  // return random shape
+};var createRandomShape = function createRandomShape() {
   var shapesKeys = Object.keys(shapes);
   var random = getRandomInt(0, shapesKeys.length);
   var currentShape = shapes[shapesKeys[random]]();
   return currentShape;
-  // renderField(document.body);
 };
 
-var currentShapeState = createShape();
-console.log('currentShapeState: ', currentShapeState);
+// current shape & game field
+var currentShapeState = createRandomShape();
+var field = createState(20, 10);
 
-var field = staticInitialState(20, 10);
-console.log('field: ', field);
-
+// render game field depending on field array state
 var renderField = function renderField() {
-  // console.log('redner');
   var shape = '';
 
   for (var i = 0; i < field.length; i++) {
     for (var j = 0; j < field[i].length; j++) {
-
-      // let cell = currentShapeState[i][j] || false;
       if (field[i][j]) {
         shape += '<div class="square active"></div>';
       } else {
@@ -95,42 +114,82 @@ var renderField = function renderField() {
     }
   }
 
-  var template = '\n        <div class="container">\n            ' + shape + '\n        <div>\n    ';
-  if (1) {
-    // Проверить является ли контейнер ДОМ елементом.
-    document.body.innerHTML = template;
-  }
+  var template = '\n        <div class="container">\n            ' + shape + '\n        <div>\n  ';
+
+  document.body.innerHTML = template;
 };
 
+// shape rotation
 var rotateShape = function rotateShape() {
-  var rotatedState = staticInitialState(currentShapeState[0].length, currentShapeState.length);
+  var rotatedState = createState(currentShapeState[0].length, currentShapeState.length);
   currentShapeState.reverse();
-  for (var i = 0; i < currentShapeState.length; i++) {
-    for (var j = 0; j < currentShapeState[i].length; j++) {
-      rotatedState[j][i] = currentShapeState[i][j];
-    }
-  }
-  currentShapeState = rotatedState;
-  // renderField(document.body);
-};
 
-// currentShape();
-var checkNextShapeState = function checkNextShapeState(y, x) {
-  var nextStateAvailable = true;
   for (var i = 0; i < currentShapeState.length; i++) {
     for (var j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        // console.log('i > ', i, 'i + y > ', i + y);
-        if (field[i + y + 1][j + x]) {
-          nextStateAvailable = false;
+        rotatedState[j][i] = currentShapeState[i][j];
+      }
+    }
+  }
+  currentShapeState = rotatedState;
+};
+
+// checks the ability to rotate a shape
+var checkNextRotatedShapeState = function checkNextRotatedShapeState(y, x) {
+  if (coordX + currentShapeState.length > 10) {
+    coordX = coordX - currentShapeState.length + currentShapeState[0].length;
+  }
+  var nextRotatedShapeState = true;
+  var nextRotatedState = createState(currentShapeState[0].length, currentShapeState.length);
+  var nextShapeState = [].concat(_toConsumableArray(currentShapeState));
+
+  nextShapeState.reverse();
+  for (var i = 0; i < nextShapeState.length; i++) {
+    for (var j = 0; j < nextShapeState[i].length; j++) {
+      if (nextShapeState[i][j]) {
+        if (field[j + y][i + x]) {
+          nextRotatedShapeState = false;
           break;
         }
       }
     }
   }
-  return nextStateAvailable;
+  return nextRotatedShapeState;
 };
 
+// check the ability to move shape across the field
+var checkNextShapeState = function checkNextShapeState(y, x) {
+  var nextShapeState = true;
+
+  for (var i = 0; i < currentShapeState.length; i++) {
+    for (var j = 0; j < currentShapeState[i].length; j++) {
+      if (currentShapeState[i][j]) {
+        if (field[i + y][j + x]) {
+          nextShapeState = false;
+          break;
+        }
+      }
+    }
+  }
+  return nextShapeState;
+};
+
+// check field on filled lines and remove if any
+var checkFilledLine = function checkFilledLine() {
+  var filledLines = [];
+  for (var i = 0; i < field.length; i++) {
+    var result = field[i].every(function (item) {
+      return item;
+    });
+    if (result) {
+      field.splice(i, 1);
+      field.unshift(Array(10).fill(false));
+    }
+  }
+  return filledLines;
+};
+
+// add current shape to field array
 var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
   for (var i = 0; i < currentShapeState.length; i++) {
     for (var j = 0; j < currentShapeState[i].length; j++) {
@@ -141,6 +200,7 @@ var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
   }
 };
 
+// remove current shape from field array
 var shiftCurrentShapeState = function shiftCurrentShapeState(y, x) {
   for (var i = 0; i < currentShapeState.length; i++) {
     for (var j = 0; j < currentShapeState[i].length; j++) {
@@ -151,14 +211,14 @@ var shiftCurrentShapeState = function shiftCurrentShapeState(y, x) {
   }
 };
 
-var coordX = 4;
-var coordY = 0;
-
-var renderFieldTick = function renderFieldTick() {
-  if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY, coordX)) {
+// render shape in game field
+var renderFieldState = function renderFieldState() {
+  if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
     pushCurrentShapeState(coordY, coordX);
-    currentShapeState = createShape();
-    coordX = 5;
+    renderField();
+    checkFilledLine();
+    currentShapeState = createRandomShape();
+    coordX = 4;
     coordY = 0;
   } else {
     pushCurrentShapeState(coordY, coordX);
@@ -168,23 +228,22 @@ var renderFieldTick = function renderFieldTick() {
   }
 };
 
-// pushCurrentShapeState(0, 0);
-// renderField();
-renderFieldTick();
-// const renderFieldId = setInterval(renderField, 1000);
-var renderFieldId = setInterval(renderFieldTick, 200);
+// initial game render and render interval
+renderFieldState();
+var renderFieldId = setInterval(renderFieldState, 500);
 
+// handlers
 var moveHandler = function moveHandler(e) {
-  if (e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length) {
+  if (e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length && checkNextShapeState(coordY, coordX + 1)) {
     coordX += 1;
   }
-  if (e.code === 'ArrowLeft' && coordX > 0) {
+  if (e.code === 'ArrowLeft' && coordX > 0 && checkNextShapeState(coordY, coordX - 1)) {
     coordX -= 1;
   }
-  if (e.code === 'ArrowUp') {
-    rotateShape(currentShapeState);
+  if (e.code === 'ArrowUp' && checkNextRotatedShapeState(coordY, coordX)) {
+    rotateShape();
   }
-  if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length) {
+  if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length && checkNextShapeState(coordY + 1, coordX)) {
     coordY += 1;
   }
   pushCurrentShapeState(coordY, coordX);
@@ -192,7 +251,4 @@ var moveHandler = function moveHandler(e) {
   shiftCurrentShapeState(coordY, coordX);
 };
 
-var rotateHandler = function rotateHandler(e) {};
-
 window.addEventListener('keydown', moveHandler);
-// window.addEventListener('keydown', rotateHandler)
