@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neomulik/Gulp.git"
+    "url": "git+https://github.com/aleksandrlepin/tetris-js.git"
   },
-  "author": "",
+  "author": "aleksandrlepin",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/neomulik/Gulp/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/neomulik/Gulp#readme",
+  "homepage": "https://aleksandrlepin.github.io/tetris-js/dist/",
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",

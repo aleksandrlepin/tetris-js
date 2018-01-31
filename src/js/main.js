@@ -190,9 +190,6 @@ const checkFilledLine = () => {
   return filledLines;
 }
 
-// check game over
-// const
-
 // add current shape to field array
 const pushCurrentShapeState = (y, x) => {
   for (let i = 0; i < currentShapeState.length; i++) {
