@@ -1,9 +1,12 @@
 // coordinates of the current shape in the field
 let coordX = 4;
-let coordY = 0;
+let coordY = -1;
+let currentShapeState;
+let nextShapeState;
+let field;
 
 // create matrix with given parameters
-let createState = (width = 4, height = 4) => {
+const createState = (width = 4, height = 4) => {
   let arr = [];
   for (let i = 0; i < width; i++) {
     let row = [];
@@ -16,14 +19,14 @@ let createState = (width = 4, height = 4) => {
 }
 
 // return random number
-function getRandomInt(min, max) {
+const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
 // array of shapes
-let shapes = {
+const shapes = {
   t: () => {
     let arr = createState(2, 3);
     arr[0][1] = true;
@@ -83,41 +86,37 @@ let shapes = {
 }
 
 // return random shape
-let createRandomShape = () => {
+const createRandomShape = () => {
   let shapesKeys = Object.keys(shapes);
   let random = getRandomInt(0, shapesKeys.length);
   let currentShape = shapes[shapesKeys[random]]();
   return currentShape;
 }
 
-// current shape & game field
-let currentShapeState = createRandomShape();
-let field = createState(20, 10);
-
-
 // render game field depending on field array state
-let renderField = () => {
+const render = (what, where, className) => {
   let shape = '';
+  let template;
 
-  for (let i = 0; i < field.length; i++) {
-    for (let j = 0; j < field[i].length; j++) {
-      if (field[i][j] === true) {
+  for (let i = 0; i < what.length; i++) {
+    for (let j = 0; j < what[i].length; j++) {
+      if (what[i][j] === true) {
         shape += '<div class="square active"></div>';
-      } else if (field[i][j] === false){
+      } else if (what[i][j] === false){
         shape += '<div class="square"></div>';
       } else {
-        shape += `<div class="square"><p class="letter">${field[i][j]}</p></div>`;
+        shape += `<div class="square"><p class="letter">${what[i][j]}</p></div>`;
       }
     }
   }
 
-  let template = `
-        <div class="container">
+  template = `
+        <div class="${className}">
             ${shape}
         <div>
   `;
 
-  document.body.innerHTML = template;
+  where.innerHTML = template;
 }
 
 // shape rotation
@@ -214,14 +213,17 @@ const shiftCurrentShapeState = (y, x) => {
 
 // render shape in game field
 const renderFieldState = () => {
+  console.log('0');
   if(coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
+    console.log('2');
     pushCurrentShapeState(coordY, coordX);
-    renderField();
+    render(field, root, 'game__container');
     checkFilledLine();
-    currentShapeState = createRandomShape();
+    currentShapeState = nextShapeState;
+    nextShapeState = createRandomShape();
     coordX = 4;
-    coordY = 0;
-    if(!checkNextShapeState(coordY, coordX)) {
+    coordY = -1;
+    if(!checkNextShapeState(coordY +1 , coordX)) {
       clearInterval(renderFieldId);
       field[8][3] = 'G';
       field[8][4] = 'A';
@@ -231,20 +233,26 @@ const renderFieldState = () => {
       field[10][4] = 'V';
       field[10][5] = 'E';
       field[10][6] = 'R';
-      renderField();
+      render(field, root, 'game__container');
       window.removeEventListener('keydown', moveHandler);
     }
-  } else {
-    pushCurrentShapeState(coordY, coordX);
-    renderField();
-    shiftCurrentShapeState(coordY, coordX);
-    coordY += 1;
   }
+  console.log('1');
+  coordY += 1;
+  pushCurrentShapeState(coordY, coordX);
+  render(field, root, 'game__container');
+  render(nextShapeState, nextShape, 'next-shape');
+  shiftCurrentShapeState(coordY, coordX);
 }
+
+// current shape & game field
+currentShapeState = createRandomShape();
+nextShapeState = createRandomShape();
+field = createState(20, 10);
 
 // initial game render and render interval
 renderFieldState();
-const renderFieldId = setInterval(renderFieldState, 500);
+const renderFieldId = setInterval(renderFieldState, 700);
 
 // handlers
 const moveHandler = (e) => {
@@ -261,7 +269,7 @@ const moveHandler = (e) => {
     coordY += 1;
   }
   pushCurrentShapeState(coordY, coordX);
-  renderField();
+  render(field, root, 'game__container');
   shiftCurrentShapeState(coordY, coordX);
 }
 

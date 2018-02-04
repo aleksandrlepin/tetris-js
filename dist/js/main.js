@@ -4,7 +4,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 // coordinates of the current shape in the field
 var coordX = 4;
-var coordY = 0;
+var coordY = -1;
+var currentShapeState = void 0;
+var nextShapeState = void 0;
+var field = void 0;
 
 // create matrix with given parameters
 var createState = function createState() {
@@ -23,11 +26,11 @@ var createState = function createState() {
 };
 
 // return random number
-function getRandomInt(min, max) {
+var getRandomInt = function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
-}
+};
 
 // array of shapes
 var shapes = {
@@ -96,29 +99,26 @@ var shapes = {
   return currentShape;
 };
 
-// current shape & game field
-var currentShapeState = createRandomShape();
-var field = createState(20, 10);
-
 // render game field depending on field array state
-var renderField = function renderField() {
+var render = function render(what, where, className) {
   var shape = '';
+  var template = void 0;
 
-  for (var i = 0; i < field.length; i++) {
-    for (var j = 0; j < field[i].length; j++) {
-      if (field[i][j] === true) {
+  for (var i = 0; i < what.length; i++) {
+    for (var j = 0; j < what[i].length; j++) {
+      if (what[i][j] === true) {
         shape += '<div class="square active"></div>';
-      } else if (field[i][j] === false) {
+      } else if (what[i][j] === false) {
         shape += '<div class="square"></div>';
       } else {
-        shape += '<div class="square"><p class="letter">' + field[i][j] + '</p></div>';
+        shape += '<div class="square"><p class="letter">' + what[i][j] + '</p></div>';
       }
     }
   }
 
-  var template = '\n        <div class="container">\n            ' + shape + '\n        <div>\n  ';
+  template = '\n        <div class="' + className + '">\n            ' + shape + '\n        <div>\n  ';
 
-  document.body.innerHTML = template;
+  where.innerHTML = template;
 };
 
 // shape rotation
@@ -215,14 +215,17 @@ var shiftCurrentShapeState = function shiftCurrentShapeState(y, x) {
 
 // render shape in game field
 var renderFieldState = function renderFieldState() {
+  console.log('0');
   if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
+    console.log('2');
     pushCurrentShapeState(coordY, coordX);
-    renderField();
+    render(field, root, 'game__container');
     checkFilledLine();
-    currentShapeState = createRandomShape();
+    currentShapeState = nextShapeState;
+    nextShapeState = createRandomShape();
     coordX = 4;
-    coordY = 0;
-    if (!checkNextShapeState(coordY, coordX)) {
+    coordY = -1;
+    if (!checkNextShapeState(coordY + 1, coordX)) {
       clearInterval(renderFieldId);
       field[8][3] = 'G';
       field[8][4] = 'A';
@@ -232,20 +235,26 @@ var renderFieldState = function renderFieldState() {
       field[10][4] = 'V';
       field[10][5] = 'E';
       field[10][6] = 'R';
-      renderField();
+      render(field, root, 'game__container');
       window.removeEventListener('keydown', moveHandler);
     }
-  } else {
-    pushCurrentShapeState(coordY, coordX);
-    renderField();
-    shiftCurrentShapeState(coordY, coordX);
-    coordY += 1;
   }
+  console.log('1');
+  coordY += 1;
+  pushCurrentShapeState(coordY, coordX);
+  render(field, root, 'game__container');
+  render(nextShapeState, nextShape, 'next-shape');
+  shiftCurrentShapeState(coordY, coordX);
 };
+
+// current shape & game field
+currentShapeState = createRandomShape();
+nextShapeState = createRandomShape();
+field = createState(20, 10);
 
 // initial game render and render interval
 renderFieldState();
-var renderFieldId = setInterval(renderFieldState, 500);
+var renderFieldId = setInterval(renderFieldState, 700);
 
 // handlers
 var moveHandler = function moveHandler(e) {
@@ -262,7 +271,7 @@ var moveHandler = function moveHandler(e) {
     coordY += 1;
   }
   pushCurrentShapeState(coordY, coordX);
-  renderField();
+  render(field, root, 'game__container');
   shiftCurrentShapeState(coordY, coordX);
 };
 
