@@ -253,10 +253,12 @@ var startGame = function startGame() {
 var pauseGame = function pauseGame() {
   if (renderFieldId === null) {
     renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
+    window.addEventListener('keydown', moveHandler);
     select('#pauseBtn').textContent = 'Pause';
   } else {
     clearInterval(renderFieldId);
     renderFieldId = null;
+    window.removeEventListener('keydown', moveHandler);
     select('#pauseBtn').textContent = 'Resume';
   }
 };
