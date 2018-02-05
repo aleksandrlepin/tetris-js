@@ -3,6 +3,7 @@ let coordX = 4;
 let coordY = -1;
 let currentShapeState;
 let nextShapeState;
+let nextShapeField;
 let field;
 
 // create matrix with given parameters
@@ -97,8 +98,12 @@ const createRandomShape = () => {
 const render = (what, where, className) => {
   let shape = '';
   let template;
+  let containerWidth;
 
   for (let i = 0; i < what.length; i++) {
+    if(i === 0) {
+      containerWidth = what[i].length;
+    }
     for (let j = 0; j < what[i].length; j++) {
       if (what[i][j] === true) {
         shape += '<div class="square active"></div>';
@@ -111,9 +116,9 @@ const render = (what, where, className) => {
   }
 
   template = `
-        <div class="${className}">
-            ${shape}
-        <div>
+    <div class="${className}" style="width: ${containerWidth * 30}px">
+        ${shape}
+    <div>
   `;
 
   where.innerHTML = template;
@@ -190,22 +195,22 @@ const checkFilledLine = () => {
 }
 
 // add current shape to field array
-const pushCurrentShapeState = (y, x) => {
-  for (let i = 0; i < currentShapeState.length; i++) {
-    for (let j = 0; j < currentShapeState[i].length; j++) {
-      if (currentShapeState[i][j]) {
-        field[i + y][j + x] = true;
+const pushShapeState = (what, where, y = 0, x = 0) => {
+  for (let i = 0; i < what.length; i++) {
+    for (let j = 0; j < what[i].length; j++) {
+      if (what[i][j]) {
+        where[i + y][j + x] = true;
       }
     }
   }
 }
 
 // remove current shape from field array
-const shiftCurrentShapeState = (y, x) => {
-  for (let i = 0; i < currentShapeState.length; i++) {
-    for (let j = 0; j < currentShapeState[i].length; j++) {
-      if (currentShapeState[i][j]) {
-        field[i + y][j + x] = false;
+const shiftShapeState = (what, where, y = 0, x = 0) => {
+  for (let i = 0; i < what.length; i++) {
+    for (let j = 0; j < what[i].length; j++) {
+      if (what[i][j]) {
+        where[i + y][j + x] = false;
       }
     }
   }
@@ -216,7 +221,7 @@ const renderFieldState = () => {
   console.log('0');
   if(coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
     console.log('2');
-    pushCurrentShapeState(coordY, coordX);
+    pushShapeState(currentShapeState, field, coordY, coordX);
     render(field, root, 'game__container');
     checkFilledLine();
     currentShapeState = nextShapeState;
@@ -239,15 +244,18 @@ const renderFieldState = () => {
   }
   console.log('1');
   coordY += 1;
-  pushCurrentShapeState(coordY, coordX);
+  pushShapeState(currentShapeState, field, coordY, coordX);
+  pushShapeState(nextShapeState, nextShapeField);
   render(field, root, 'game__container');
-  render(nextShapeState, nextShape, 'next-shape');
-  shiftCurrentShapeState(coordY, coordX);
+  render(nextShapeField, nextShape, 'next-shape');
+  shiftShapeState(currentShapeState, field, coordY, coordX);
+  shiftShapeState(nextShapeState, nextShapeField);
 }
 
 // current shape & game field
 currentShapeState = createRandomShape();
 nextShapeState = createRandomShape();
+nextShapeField = createState(4, 4);
 field = createState(20, 10);
 
 // initial game render and render interval
@@ -268,9 +276,9 @@ const moveHandler = (e) => {
   if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length && checkNextShapeState(coordY + 1, coordX)) {
     coordY += 1;
   }
-  pushCurrentShapeState(coordY, coordX);
+  pushShapeState(currentShapeState, field, coordY, coordX);
   render(field, root, 'game__container');
-  shiftCurrentShapeState(coordY, coordX);
+  shiftShapeState(currentShapeState, field, coordY, coordX);
 }
 
 window.addEventListener('keydown', moveHandler);

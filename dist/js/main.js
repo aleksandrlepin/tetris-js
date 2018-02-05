@@ -7,6 +7,7 @@ var coordX = 4;
 var coordY = -1;
 var currentShapeState = void 0;
 var nextShapeState = void 0;
+var nextShapeField = void 0;
 var field = void 0;
 
 // create matrix with given parameters
@@ -103,8 +104,12 @@ var shapes = {
 var render = function render(what, where, className) {
   var shape = '';
   var template = void 0;
+  var containerWidth = void 0;
 
   for (var i = 0; i < what.length; i++) {
+    if (i === 0) {
+      containerWidth = what[i].length;
+    }
     for (var j = 0; j < what[i].length; j++) {
       if (what[i][j] === true) {
         shape += '<div class="square active"></div>';
@@ -116,7 +121,7 @@ var render = function render(what, where, className) {
     }
   }
 
-  template = '\n        <div class="' + className + '">\n            ' + shape + '\n        <div>\n  ';
+  template = '\n    <div class="' + className + '" style="width: ' + containerWidth * 30 + 'px">\n        ' + shape + '\n    <div>\n  ';
 
   where.innerHTML = template;
 };
@@ -192,22 +197,28 @@ var checkFilledLine = function checkFilledLine() {
 };
 
 // add current shape to field array
-var pushCurrentShapeState = function pushCurrentShapeState(y, x) {
-  for (var i = 0; i < currentShapeState.length; i++) {
-    for (var j = 0; j < currentShapeState[i].length; j++) {
-      if (currentShapeState[i][j]) {
-        field[i + y][j + x] = true;
+var pushShapeState = function pushShapeState(what, where) {
+  var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var x = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+
+  for (var i = 0; i < what.length; i++) {
+    for (var j = 0; j < what[i].length; j++) {
+      if (what[i][j]) {
+        where[i + y][j + x] = true;
       }
     }
   }
 };
 
 // remove current shape from field array
-var shiftCurrentShapeState = function shiftCurrentShapeState(y, x) {
-  for (var i = 0; i < currentShapeState.length; i++) {
-    for (var j = 0; j < currentShapeState[i].length; j++) {
-      if (currentShapeState[i][j]) {
-        field[i + y][j + x] = false;
+var shiftShapeState = function shiftShapeState(what, where) {
+  var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var x = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+
+  for (var i = 0; i < what.length; i++) {
+    for (var j = 0; j < what[i].length; j++) {
+      if (what[i][j]) {
+        where[i + y][j + x] = false;
       }
     }
   }
@@ -218,7 +229,7 @@ var renderFieldState = function renderFieldState() {
   console.log('0');
   if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
     console.log('2');
-    pushCurrentShapeState(coordY, coordX);
+    pushShapeState(currentShapeState, field, coordY, coordX);
     render(field, root, 'game__container');
     checkFilledLine();
     currentShapeState = nextShapeState;
@@ -241,15 +252,18 @@ var renderFieldState = function renderFieldState() {
   }
   console.log('1');
   coordY += 1;
-  pushCurrentShapeState(coordY, coordX);
+  pushShapeState(currentShapeState, field, coordY, coordX);
+  pushShapeState(nextShapeState, nextShapeField);
   render(field, root, 'game__container');
-  render(nextShapeState, nextShape, 'next-shape');
-  shiftCurrentShapeState(coordY, coordX);
+  render(nextShapeField, nextShape, 'next-shape');
+  shiftShapeState(currentShapeState, field, coordY, coordX);
+  shiftShapeState(nextShapeState, nextShapeField);
 };
 
 // current shape & game field
 currentShapeState = createRandomShape();
 nextShapeState = createRandomShape();
+nextShapeField = createState(4, 4);
 field = createState(20, 10);
 
 // initial game render and render interval
@@ -270,9 +284,9 @@ var moveHandler = function moveHandler(e) {
   if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length && checkNextShapeState(coordY + 1, coordX)) {
     coordY += 1;
   }
-  pushCurrentShapeState(coordY, coordX);
+  pushShapeState(currentShapeState, field, coordY, coordX);
   render(field, root, 'game__container');
-  shiftCurrentShapeState(coordY, coordX);
+  shiftShapeState(currentShapeState, field, coordY, coordX);
 };
 
 window.addEventListener('keydown', moveHandler);
