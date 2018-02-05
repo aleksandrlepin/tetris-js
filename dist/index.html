@@ -13,20 +13,29 @@
       <div id="root"></div>
       <div class="game__info">
         <ul>
-          <li>Next shape<span id="nextShape"></span></li>
-          <li>Level: <select id="level">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-          </select></li>
-          <li>Score: <span id="score">200</span></li>
+          <li class="btn-holder">
+            <button id="startBtn">Start</button>
+            <button id="pauseBtn">Pause</button>
+            <select id="level">
+              <option value="1" selected>Level 1</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
+              <option value="4">Level 4</option>
+              <option value="5">Level 5</option>
+              <option value="6">Level 6</option>
+              <option value="7">Level 7</option>
+              <option value="8">Level 8</option>
+              <option value="9">Level 9</option>
+              <option value="10">Level 10</option>
+            </select>
+          </li>
+          <li>
+            <p>Next shape:</p>
+            <div id="nextShape"></li>
+          <li>
+            <p>Score:</p>
+            <p id="score">0</p>
+          </li>
         </ul>
       </div>
     </div>

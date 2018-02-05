@@ -15,16 +15,28 @@ $transparente: rgba(0, 0, 0, 0);
   box-sizing: border-box;
 }
 
-body {
+p {
+  margin: 0;
 }
 
-select {
-  @include border(2px, $light-purple, 3px);
+select,
+button {
+  @include border(2px, $light-purple, 5px);
+  display: block;
+  width: 120px;
+  margin: 0 0 10px;
+  background: $white;
   color: $purple;
   font: 20px 'Roboto', sans-serif;
+  text-align: center;
+
+  &:last-child {
+    margin: 0;
+  }
 }
+
 .wrapper {
-  width: 720px;
+  width: 640px;
   margin: 20px auto 0;
 }
 
@@ -32,7 +44,7 @@ select {
   @include border(2px, $light-purple , 3px);
   background-color: $gray;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   padding: 30px;
   box-shadow: 0 0 200px $light-purple;
   color: $purple;
@@ -47,17 +59,27 @@ select {
   box-shadow: inset 0 0 100px $light-purple;
 }
 
-.next-shape {
-  @extend .game__container;
-  margin-bottom: 15px;
-}
-
 .game__info {
+  text-align: center;
 
   ul {
+    margin: 0;
     padding: 0;
     list-style: none;
+
+    li {
+      margin-bottom: 20px;
+
+      &:last-child{
+        margin-bottom: 0;
+      }
+    }
   }
+}
+
+.next-shape {
+  @extend .game__container;
+  margin: 0 auto;
 }
 
 .square {
@@ -79,4 +101,8 @@ select {
   margin: 0;
   text-align: center;
   vertical-align: middle;
+}
+
+.btn-holder {
+  margin-bottom: 50px;
 }

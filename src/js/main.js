@@ -1,10 +1,13 @@
-// coordinates of the current shape in the field
-let coordX = 4;
-let coordY = -1;
+let coordX;
+let coordY;
 let currentShapeState;
 let nextShapeState;
 let nextShapeField;
 let field;
+let renderFieldId;
+let level;
+let gameStarted = false;
+let score = 0;
 
 // create matrix with given parameters
 const createState = (width = 4, height = 4) => {
@@ -17,6 +20,11 @@ const createState = (width = 4, height = 4) => {
     arr.push(row);
   }
   return arr;
+}
+
+// select DOM element function
+const select = (element) => {
+  return document.querySelector(element);
 }
 
 // return random number
@@ -189,6 +197,8 @@ const checkFilledLine = () => {
     if(result) {
       field.splice(i, 1);
       field.unshift(Array(10).fill(false,));
+      score += 100;
+      select('#score').textContent = score;
     }
   }
   return filledLines;
@@ -216,11 +226,36 @@ const shiftShapeState = (what, where, y = 0, x = 0) => {
   }
 }
 
+// start game handler
+const startGame = () => {
+  score = 0;
+  initialGameRender();
+  gameStarted = true;
+  level = document.querySelector('#level').value;
+  coordX = 4;
+  coordY = -1;
+  renderFieldState();
+  renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
+  select('#startBtn').setAttribute('disabled', 'disabled');
+  select('#level').setAttribute('disabled', 'disabled');
+  window.addEventListener('keydown', moveHandler);
+}
+
+// pause game handler
+const pauseGame = () => {
+  if (renderFieldId === null) {
+    renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
+    select('#pauseBtn').textContent = 'Pause';
+  } else {
+    clearInterval(renderFieldId);
+    renderFieldId = null;
+    select('#pauseBtn').textContent = 'Resume';
+  }
+}
+
 // render shape in game field
 const renderFieldState = () => {
-  console.log('0');
   if(coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
-    console.log('2');
     pushShapeState(currentShapeState, field, coordY, coordX);
     render(field, root, 'game__container');
     checkFilledLine();
@@ -240,9 +275,11 @@ const renderFieldState = () => {
       field[10][6] = 'R';
       render(field, root, 'game__container');
       window.removeEventListener('keydown', moveHandler);
+      select('#startBtn').removeAttribute('disabled');
+      select('#level').removeAttribute('disabled');
+      gameStarted = false;
     }
   }
-  console.log('1');
   coordY += 1;
   pushShapeState(currentShapeState, field, coordY, coordX);
   pushShapeState(nextShapeState, nextShapeField);
@@ -252,15 +289,17 @@ const renderFieldState = () => {
   shiftShapeState(nextShapeState, nextShapeField);
 }
 
-// current shape & game field
+const initialGameRender = () => {
+// current & next shape & game fields
 currentShapeState = createRandomShape();
 nextShapeState = createRandomShape();
 nextShapeField = createState(4, 4);
-field = createState(20, 10);
+field = createState(22, 10);
 
-// initial game render and render interval
-renderFieldState();
-const renderFieldId = setInterval(renderFieldState, 700);
+// initial game render
+render(field, root, 'game__container');
+render(nextShapeField, nextShape, 'next-shape');
+}
 
 // handlers
 const moveHandler = (e) => {
@@ -281,4 +320,8 @@ const moveHandler = (e) => {
   shiftShapeState(currentShapeState, field, coordY, coordX);
 }
 
-window.addEventListener('keydown', moveHandler);
+select('#startBtn').addEventListener('click', startGame);
+select('#pauseBtn').addEventListener('click', pauseGame);
+
+// render game field and next shape field on load
+initialGameRender();
