@@ -190,6 +190,7 @@ const checkNextShapeState = (y, x) => {
 // check field on filled lines and remove if any
 const checkFilledLine = () => {
   let filledLines = [];
+  let lineCount = 0;
   for (let i = 0; i < field.length; i++) {
     let result = field[i].every((item) => {
       return item;
@@ -197,10 +198,11 @@ const checkFilledLine = () => {
     if(result) {
       field.splice(i, 1);
       field.unshift(Array(10).fill(false,));
-      score += 100;
-      select('#score').textContent = score;
+      lineCount++;
     }
   }
+  score += lineCount * lineCount * 100;
+  select('#score').textContent = score;
   return filledLines;
 }
 
