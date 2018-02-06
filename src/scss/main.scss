@@ -33,6 +33,11 @@ button {
   &:last-child {
     margin: 0;
   }
+
+  &:disabled {
+    color: #eee;
+    border-color: #eee;
+  }
 }
 
 .wrapper {
