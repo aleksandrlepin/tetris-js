@@ -236,9 +236,10 @@ const startGame = () => {
   coordY = -1;
   renderFieldState();
   renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
-  select('#startBtn').setAttribute('disabled', 'disabled');
-  select('#level').setAttribute('disabled', 'disabled');
+  select('#startBtn').setAttribute('disabled', true);
+  select('#level').setAttribute('disabled', true);
   window.addEventListener('keydown', moveHandler);
+  select('#pauseBtn').focus();
 }
 
 // pause game handler
