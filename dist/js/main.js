@@ -150,7 +150,7 @@ var rotateShape = function rotateShape() {
 };
 
 // checks the ability to rotate a shape
-var checkNextRotatedShapeState = function checkNextRotatedShapeState(y, x) {
+var checkRotatedShapeState = function checkRotatedShapeState(y, x) {
   if (coordX + currentShapeState.length > 10) {
     coordX = coordX - currentShapeState.length + currentShapeState[0].length;
   }
@@ -244,8 +244,8 @@ var startGame = function startGame() {
   level = document.querySelector('#level').value;
   coordX = 4;
   coordY = -1;
-  renderFieldState();
-  renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
+  // renderFieldState();
+  renderFieldId = setInterval(renderFieldState, 700 - level * 60);
   select('#startBtn').setAttribute('disabled', true);
   select('#level').setAttribute('disabled', true);
   window.addEventListener('keydown', moveHandler);
@@ -255,7 +255,7 @@ var startGame = function startGame() {
 // pause game handler
 var pauseGame = function pauseGame() {
   if (renderFieldId === null) {
-    renderFieldId = setInterval(renderFieldState, 1050 - level * 100);
+    renderFieldId = setInterval(renderFieldState, 700 - level * 60);
     window.addEventListener('keydown', moveHandler);
     select('#pauseBtn').textContent = 'Pause';
   } else {
@@ -316,13 +316,14 @@ var initialGameRender = function initialGameRender() {
 
 // handlers
 var moveHandler = function moveHandler(e) {
+
   if (e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length && checkNextShapeState(coordY, coordX + 1)) {
     coordX += 1;
   }
   if (e.code === 'ArrowLeft' && coordX > 0 && checkNextShapeState(coordY, coordX - 1)) {
     coordX -= 1;
   }
-  if (e.code === 'ArrowUp' && checkNextRotatedShapeState(coordY, coordX)) {
+  if (e.code === 'ArrowUp' && checkRotatedShapeState(coordY, coordX)) {
     rotateShape();
   }
   if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length && checkNextShapeState(coordY + 1, coordX)) {
