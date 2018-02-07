@@ -9,6 +9,36 @@ let level;
 let gameStarted = false;
 let score = 0;
 
+// cross browser event listener
+var cb_addEventListener = function(obj, evt, fnc) {
+  // W3C model
+  if (obj.addEventListener) {
+      obj.addEventListener(evt, fnc, false);
+      return true;
+  }
+  // Microsoft model
+  else if (obj.attachEvent) {
+      return obj.attachEvent('on' + evt, fnc);
+  }
+  // Browser don't support W3C or MSFT model, go on with traditional
+  else {
+      evt = 'on'+evt;
+      if(typeof obj[evt] === 'function'){
+          // Object already has a function on traditional
+          // Let's wrap it with our own function inside another function
+          fnc = (function(f1,f2){
+              return function(){
+                  f1.apply(this,arguments);
+                  f2.apply(this,arguments);
+              }
+          })(obj[evt], fnc);
+      }
+      obj[evt] = fnc;
+      return true;
+  }
+  return false;
+};
+
 // create matrix with given parameters
 const createState = (width = 4, height = 4) => {
   let arr = [];
@@ -240,7 +270,7 @@ const startGame = () => {
   renderFieldId = setInterval(renderFieldState, 700 - level * 60);
   select('#startBtn').setAttribute('disabled', true);
   select('#level').setAttribute('disabled', true);
-  window.addEventListener('keydown', moveHandler);
+  cb_addEventListener(window, 'keydown', moveHandler);
   select('#pauseBtn').focus();
 }
 
@@ -248,7 +278,7 @@ const startGame = () => {
 const pauseGame = () => {
   if (renderFieldId === null) {
     renderFieldId = setInterval(renderFieldState, 700 - level * 60);
-    window.addEventListener('keydown', moveHandler);
+    cb_addEventListener(window, 'keydown', moveHandler);
     select('#pauseBtn').textContent = 'Pause';
   } else {
     clearInterval(renderFieldId);
@@ -326,8 +356,8 @@ const moveHandler = (e) => {
   shiftShapeState(currentShapeState, field, coordY, coordX);
 }
 
-select('#startBtn').addEventListener('click', startGame);
-select('#pauseBtn').addEventListener('click', pauseGame);
+cb_addEventListener(select('#startBtn'), 'click', startGame);
+cb_addEventListener(select('#pauseBtn'), 'click', pauseGame);
 
 // render game field and next shape field on load
 initialGameRender();
