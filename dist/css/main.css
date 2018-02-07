@@ -1,9 +1,0 @@
-* { box-sizing: border-box; }
-
-.container { display: flex; flex-wrap: wrap; width: 200px; height: 200px; border: solid 1px #555; }
-
-.square { width: 25%; height: 25%; border: solid 1px #777; }
-
-.active { background: #333; }
-
-

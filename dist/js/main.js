@@ -1,198 +1,196 @@
-'use strict';
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var coordX = void 0;
-var coordY = void 0;
-var currentShapeState = void 0;
-var nextShapeState = void 0;
-var nextShapeField = void 0;
-var field = void 0;
-var renderFieldId = void 0;
-var level = void 0;
-var gameStarted = false;
-var score = 0;
+let coordX;
+let coordY;
+let currentShapeState;
+let nextShapeState;
+let nextShapeField;
+let field;
+let renderFieldId;
+let level;
+let gameStarted = false;
+let score = 0;
 
 // cross browser event listener
-var cb_addEventListener = function cb_addEventListener(obj, evt, fnc) {
+var cb_addEventListener = function(obj, evt, fnc) {
   // W3C model
   if (obj.addEventListener) {
-    obj.addEventListener(evt, fnc, false);
-    return true;
+      obj.addEventListener(evt, fnc, false);
+      return true;
   }
   // Microsoft model
   else if (obj.attachEvent) {
       return obj.attachEvent('on' + evt, fnc);
-    }
-    // Browser don't support W3C or MSFT model, go on with traditional
-    else {
-        evt = 'on' + evt;
-        if (typeof obj[evt] === 'function') {
+  }
+  // Browser don't support W3C or MSFT model, go on with traditional
+  else {
+      evt = 'on'+evt;
+      if(typeof obj[evt] === 'function'){
           // Object already has a function on traditional
           // Let's wrap it with our own function inside another function
-          fnc = function (f1, f2) {
-            return function () {
-              f1.apply(this, arguments);
-              f2.apply(this, arguments);
-            };
-          }(obj[evt], fnc);
-        }
-        obj[evt] = fnc;
-        return true;
+          fnc = (function(f1,f2){
+              return function(){
+                  f1.apply(this,arguments);
+                  f2.apply(this,arguments);
+              }
+          })(obj[evt], fnc);
       }
+      obj[evt] = fnc;
+      return true;
+  }
   return false;
 };
 
 // create matrix with given parameters
-var createState = function createState() {
-  var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-  var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 4;
-
-  var arr = [];
-  for (var i = 0; i < width; i++) {
-    var row = [];
-    for (var j = 0; j < height; j++) {
+const createState = (width = 4, height = 4) => {
+  let arr = [];
+  for (let i = 0; i < width; i++) {
+    let row = [];
+    for (let j = 0; j < height; j++) {
       row.push(false);
     }
     arr.push(row);
   }
   return arr;
-};
+}
 
 // select DOM element function
-var select = function select(element) {
+const select = (element) => {
   return document.querySelector(element);
-};
+}
 
 // return random number
-var getRandomInt = function getRandomInt(min, max) {
+const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
-};
+}
 
 // array of shapes
-var shapes = {
-  t: function t() {
-    var arr = createState(2, 3);
+const shapes = {
+  t: () => {
+    let arr = createState(2, 3);
     arr[0][1] = true;
     arr[1][0] = true;
     arr[1][1] = true;
     arr[1][2] = true;
     return arr;
   },
-  square: function square() {
-    var arr = createState(2, 2);
+  square: () => {
+    let arr = createState(2, 2);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][0] = true;
     arr[1][1] = true;
     return arr;
   },
-  l: function l() {
-    var arr = createState(2, 3);
+  l: () => {
+    let arr = createState(2, 3);
     arr[0][0] = true;
     arr[1][0] = true;
     arr[1][1] = true;
     arr[1][2] = true;
     return arr;
   },
-  lInverted: function lInverted() {
-    var arr = createState(2, 3);
+  lInverted: () => {
+    let arr = createState(2, 3);
     arr[0][2] = true;
     arr[1][0] = true;
     arr[1][1] = true;
     arr[1][2] = true;
     return arr;
   },
-  line: function line() {
-    var arr = createState(1, 4);
+  line: () => {
+    let arr = createState(1, 4);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[0][2] = true;
     arr[0][3] = true;
     return arr;
   },
-  z: function z() {
-    var arr = createState(2, 3);
+  z: () => {
+    let arr = createState(2, 3);
     arr[0][0] = true;
     arr[0][1] = true;
     arr[1][1] = true;
     arr[1][2] = true;
     return arr;
   },
-  zInverted: function zInverted() {
-    var arr = createState(2, 3);
+  zInverted: () => {
+    let arr = createState(2, 3);
     arr[0][1] = true;
     arr[0][2] = true;
     arr[1][0] = true;
     arr[1][1] = true;
     return arr;
-  }
+  },
+}
 
-  // return random shape
-};var createRandomShape = function createRandomShape() {
-  var shapesKeys = Object.keys(shapes);
-  var random = getRandomInt(0, shapesKeys.length);
-  var currentShape = shapes[shapesKeys[random]]();
+// return random shape
+const createRandomShape = () => {
+  let shapesKeys = Object.keys(shapes);
+  let random = getRandomInt(0, shapesKeys.length);
+  let currentShape = shapes[shapesKeys[random]]();
   return currentShape;
-};
+}
 
 // render game field depending on field array state
-var render = function render(what, where, className) {
-  var shape = '';
-  var template = void 0;
-  var containerWidth = void 0;
+const render = (what, where, className) => {
+  let shape = '';
+  let template;
+  let containerWidth;
 
-  for (var i = 0; i < what.length; i++) {
-    if (i === 0) {
+  for (let i = 0; i < what.length; i++) {
+    if(i === 0) {
       containerWidth = what[i].length;
     }
-    for (var j = 0; j < what[i].length; j++) {
+    for (let j = 0; j < what[i].length; j++) {
       if (what[i][j] === true) {
         shape += '<div class="square active"></div>';
-      } else if (what[i][j] === false) {
+      } else if (what[i][j] === false){
         shape += '<div class="square"></div>';
       } else {
-        shape += '<div class="square"><p class="letter">' + what[i][j] + '</p></div>';
+        shape += `<div class="square"><p class="letter">${what[i][j]}</p></div>`;
       }
     }
   }
 
-  template = '\n    <div class="' + className + '" style="width: ' + containerWidth * 30 + 'px">\n        ' + shape + '\n    <div>\n  ';
+  template = `
+    <div class="${className}" style="width: ${containerWidth * 30}px">
+        ${shape}
+    <div>
+  `;
 
   where.innerHTML = template;
-};
+}
 
 // shape rotation
-var rotateShape = function rotateShape() {
-  var rotatedState = createState(currentShapeState[0].length, currentShapeState.length);
+const rotateShape = () => {
+  let rotatedState = createState(currentShapeState[0].length, currentShapeState.length);
   currentShapeState.reverse();
 
-  for (var i = 0; i < currentShapeState.length; i++) {
-    for (var j = 0; j < currentShapeState[i].length; j++) {
-      if (currentShapeState[i][j]) {
+  for (let i = 0; i < currentShapeState.length; i++) {
+    for (let j = 0; j < currentShapeState[i].length; j++) {
+      if(currentShapeState[i][j]) {
         rotatedState[j][i] = currentShapeState[i][j];
       }
     }
   }
   currentShapeState = rotatedState;
-};
+}
 
 // checks the ability to rotate a shape
-var checkRotatedShapeState = function checkRotatedShapeState(y, x) {
+const checkRotatedShapeState = (y, x) => {
   if (coordX + currentShapeState.length > 10) {
     coordX = coordX - currentShapeState.length + currentShapeState[0].length;
   }
-  var nextRotatedShapeState = true;
-  var nextRotatedState = createState(currentShapeState[0].length, currentShapeState.length);
-  var nextShapeState = [].concat(_toConsumableArray(currentShapeState));
+  let nextRotatedShapeState = true;
+  let nextRotatedState = createState(currentShapeState[0].length, currentShapeState.length);
+  let nextShapeState = [...currentShapeState];
 
   nextShapeState.reverse();
-  for (var i = 0; i < nextShapeState.length; i++) {
-    for (var j = 0; j < nextShapeState[i].length; j++) {
-      if (nextShapeState[i][j]) {
-        if (field[j + y][i + x]) {
+  for (let i = 0; i < nextShapeState.length; i++) {
+    for (let j = 0; j < nextShapeState[i].length; j++) {
+      if(nextShapeState[i][j]) {
+        if(field[j + y][i + x]) {
           nextRotatedShapeState = false;
           break;
         }
@@ -200,16 +198,16 @@ var checkRotatedShapeState = function checkRotatedShapeState(y, x) {
     }
   }
   return nextRotatedShapeState;
-};
+}
 
 // check the ability to move shape across the field
-var checkNextShapeState = function checkNextShapeState(y, x) {
-  var nextShapeState = true;
+const checkNextShapeState = (y, x) => {
+  let nextShapeState = true;
 
-  for (var i = 0; i < currentShapeState.length; i++) {
-    for (var j = 0; j < currentShapeState[i].length; j++) {
+  for (let i = 0; i < currentShapeState.length; i++) {
+    for (let j = 0; j < currentShapeState[i].length; j++) {
       if (currentShapeState[i][j]) {
-        if (field[i + y][j + x]) {
+        if(field[i + y][j + x]) {
           nextShapeState = false;
           break;
         }
@@ -217,57 +215,51 @@ var checkNextShapeState = function checkNextShapeState(y, x) {
     }
   }
   return nextShapeState;
-};
+}
 
 // check field on filled lines and remove if any
-var checkFilledLine = function checkFilledLine() {
-  var filledLines = [];
-  var lineCount = 0;
-  for (var i = 0; i < field.length; i++) {
-    var result = field[i].every(function (item) {
+const checkFilledLine = () => {
+  let filledLines = [];
+  let lineCount = 0;
+  for (let i = 0; i < field.length; i++) {
+    let result = field[i].every((item) => {
       return item;
     });
-    if (result) {
+    if(result) {
       field.splice(i, 1);
-      field.unshift(Array(10).fill(false));
+      field.unshift(Array(10).fill(false,));
       lineCount++;
     }
   }
   score += lineCount * lineCount * 100;
   select('#score').textContent = score;
   return filledLines;
-};
+}
 
 // add current shape to field array
-var pushShapeState = function pushShapeState(what, where) {
-  var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-  var x = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-
-  for (var i = 0; i < what.length; i++) {
-    for (var j = 0; j < what[i].length; j++) {
+const pushShapeState = (what, where, y = 0, x = 0) => {
+  for (let i = 0; i < what.length; i++) {
+    for (let j = 0; j < what[i].length; j++) {
       if (what[i][j]) {
         where[i + y][j + x] = true;
       }
     }
   }
-};
+}
 
 // remove current shape from field array
-var shiftShapeState = function shiftShapeState(what, where) {
-  var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-  var x = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-
-  for (var i = 0; i < what.length; i++) {
-    for (var j = 0; j < what[i].length; j++) {
+const shiftShapeState = (what, where, y = 0, x = 0) => {
+  for (let i = 0; i < what.length; i++) {
+    for (let j = 0; j < what[i].length; j++) {
       if (what[i][j]) {
         where[i + y][j + x] = false;
       }
     }
   }
-};
+}
 
 // start game handler
-var startGame = function startGame() {
+const startGame = () => {
   score = 0;
   initialGameRender();
   gameStarted = true;
@@ -280,10 +272,10 @@ var startGame = function startGame() {
   select('#level').setAttribute('disabled', true);
   cb_addEventListener(window, 'keydown', moveHandler);
   select('#pauseBtn').focus();
-};
+}
 
 // pause game handler
-var pauseGame = function pauseGame() {
+const pauseGame = () => {
   if (renderFieldId === null) {
     renderFieldId = setInterval(renderFieldState, 700 - level * 60);
     cb_addEventListener(window, 'keydown', moveHandler);
@@ -294,11 +286,11 @@ var pauseGame = function pauseGame() {
     window.removeEventListener('keydown', moveHandler);
     select('#pauseBtn').textContent = 'Resume';
   }
-};
+}
 
 // render shape in game field
-var renderFieldState = function renderFieldState() {
-  if (coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
+const renderFieldState = () => {
+  if(coordY === field.length - currentShapeState.length || !checkNextShapeState(coordY + 1, coordX)) {
     pushShapeState(currentShapeState, field, coordY, coordX);
     render(field, root, 'game__container');
     checkFilledLine();
@@ -306,7 +298,7 @@ var renderFieldState = function renderFieldState() {
     nextShapeState = createRandomShape();
     coordX = 4;
     coordY = -1;
-    if (!checkNextShapeState(coordY + 1, coordX)) {
+    if(!checkNextShapeState(coordY +1 , coordX)) {
       clearInterval(renderFieldId);
       field[8][3] = 'G';
       field[8][4] = 'A';
@@ -330,9 +322,9 @@ var renderFieldState = function renderFieldState() {
   render(nextShapeField, nextShape, 'next-shape');
   shiftShapeState(currentShapeState, field, coordY, coordX);
   shiftShapeState(nextShapeState, nextShapeField);
-};
+}
 
-var initialGameRender = function initialGameRender() {
+const initialGameRender = () => {
   // current & next shape & game fields
   currentShapeState = createRandomShape();
   nextShapeState = createRandomShape();
@@ -342,18 +334,18 @@ var initialGameRender = function initialGameRender() {
   // initial game render
   render(field, root, 'game__container');
   render(nextShapeField, nextShape, 'next-shape');
-};
+}
 
 // handlers
-var moveHandler = function moveHandler(e) {
+const moveHandler = (e) => {
 
-  if (e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length && checkNextShapeState(coordY, coordX + 1)) {
+  if(e.code === 'ArrowRight' && coordX < 10 - currentShapeState[0].length && checkNextShapeState(coordY, coordX + 1)) {
     coordX += 1;
   }
-  if (e.code === 'ArrowLeft' && coordX > 0 && checkNextShapeState(coordY, coordX - 1)) {
+  if(e.code === 'ArrowLeft' && coordX > 0 && checkNextShapeState(coordY, coordX - 1)) {
     coordX -= 1;
   }
-  if (e.code === 'ArrowUp' && checkRotatedShapeState(coordY, coordX)) {
+  if(e.code === 'ArrowUp' && checkRotatedShapeState(coordY, coordX)) {
     rotateShape();
   }
   if (e.code === 'ArrowDown' && coordY < field.length - currentShapeState.length && checkNextShapeState(coordY + 1, coordX)) {
@@ -362,7 +354,7 @@ var moveHandler = function moveHandler(e) {
   pushShapeState(currentShapeState, field, coordY, coordX);
   render(field, root, 'game__container');
   shiftShapeState(currentShapeState, field, coordY, coordX);
-};
+}
 
 cb_addEventListener(select('#startBtn'), 'click', startGame);
 cb_addEventListener(select('#pauseBtn'), 'click', pauseGame);
